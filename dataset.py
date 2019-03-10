@@ -10,6 +10,11 @@ from vocparseclslabels import PascalVOC
 class VOC2012ClassificationDataset(data_utils.Dataset):
     """
     Dataset for paths to image and label
+    Args:
+        root: Root Directory
+        train_or_val: 'train' or 'val' for dataset type in txt files
+
+    Creates a dataset: list of [image tensors, one-hot encoding] for every image in 'train' or 'val'
     """
     def __init__(self, root, train_or_val, transform=None, target_transform=None):
         self.root = root
@@ -24,9 +29,9 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
         for i, cat_name in enumerate(self.classes):
             self.class_to_index[cat_name] = i
         print("Class to index mapping:\n", self.class_to_index)
+
         # k, v: image_name, one-hot category of len classes
         self.images = {}
-        
         # Store image, labels
         for cat_name, idx in self.class_to_index.items():
             img_ls = self.pv.imgs_from_category_as_list(cat_name, train_or_val)
@@ -39,6 +44,7 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
                     self.images[img_name] = np.zeros(len(self.classes))
                     self.images[img_name][idx] = 1
 
+        # TODO: Change this hacky solution, converted dict to list for enum in Dataloader
         self.image_list = []
         for k, v in self.images.items():
             temp = [k,v]

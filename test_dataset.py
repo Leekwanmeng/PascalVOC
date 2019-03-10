@@ -3,7 +3,7 @@ import torchvision.transforms as transforms
 import torch.utils.data as data_utils
 
 root = './'
-batch_size = 8
+batch_size = 1
 
 def test():
     transform = transforms.Compose([
