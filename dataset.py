@@ -25,9 +25,12 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
 
         self.classes = self.pv.list_image_sets()
         self.class_to_index = {}
+        self.index_to_class = {}
         # For one hot indexing
         for i, cat_name in enumerate(self.classes):
             self.class_to_index[cat_name] = i
+            self.index_to_class[i] = cat_name
+        
         print("Class to index mapping:\n", self.class_to_index)
 
         # k, v: image_name, one-hot category of len classes
