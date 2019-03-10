@@ -57,7 +57,6 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
     def __len__(self):
         return len(self.image_list)
     
-
     def __getitem__(self, index):
         """
         Returns:
@@ -74,4 +73,3 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
             target = self.target_transform(target)
 
         return image, target
-
