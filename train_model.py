@@ -10,6 +10,8 @@ import torch.optim
 from math import ceil
 import torchnet.meter
 
+
+
 from dataset import VOC2012ClassificationDataset as VOCDataset
 
 def list_image_sets():
@@ -32,8 +34,8 @@ def load_model():
     for param in model.parameters():
         param.requires_grad = False
     in_ftrs = model.fc.in_features
-    model.fc = nn.Linear(in_ftrs, 20)
     #Reshape last layer
+    model.fc = nn.Linear(in_ftrs, 20)
     #Train only last layer
     parameters = model.fc.parameters()
     
@@ -45,7 +47,7 @@ def train(args, model, device, train_loader, optimizer, epoch, lossfunction):
     total_loss = 0
     for batch_idx, (x, y) in enumerate(train_loader):
         x, y = x.to(device), y.to(device)
-        #Batchsize, number of crops, channels, height, width   
+
         optimizer.zero_grad()
         pred = model(x)
         y = y.float()
@@ -58,6 +60,7 @@ def train(args, model, device, train_loader, optimizer, epoch, lossfunction):
                 epoch, batch_idx * len(x), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
+    print('\nAverage train loss: {:.6f}'.format(total_loss/ceil(len(train_loader.dataset)/train_loader.batch_size)))
     return total_loss/ceil(len(train_loader.dataset)/train_loader.batch_size)
 
 
@@ -78,12 +81,15 @@ def test(args, model, device, test_loader, lossfunction):
 
     test_loss /= len(test_loader.dataset)
 
-    print('\nValidation set: Average loss: {:.4f}\nAP measurement:'.format(test_loss))
+    apvalue = apmeter.value().tolist()
+
+    print('\nValidation set of {}: Average loss: {:.4f}, mean AP measurement: {:.2f} %\n'.format(
+        len(test_loader.dataset) ,test_loss, sum(apvalue)/len(apvalue) * 100 ))
     
-    for idx, ap in enumerate(apmeter.value().tolist()):
+    for idx, ap in enumerate(apvalue):
         print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
 
-    return test_loss, apmeter.value().tolist()
+    return test_loss, apvalue
 
 def run():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -93,11 +99,11 @@ def run():
     parser.add_argument('--test-batch-size', type=int, default=32, metavar='N',
                         help='input batch size for testing (default: 1000)')
 
-    parser.add_argument('--epochs', type=int, default=30, metavar='N',
-                        help='number of epochs to train (default: 30)')
+    parser.add_argument('--epochs', type=int, default=15, metavar='N',
+                        help='number of epochs to train (default: 15)')
     
-    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
-                        help='learning rate (default: 0.01)')
+    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
+                        help='learning rate (default: 0.001)')
     
     parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
                         help='SGD momentum (default: 0.5)')
@@ -119,18 +125,20 @@ def run():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    root = 'D:\Downloads\Deep Learning\Week 6'
+    root = 'D:/Downloads/Deep Learning/Week 6'
 
     train_transform = transforms.Compose([
-                transforms.Resize(224),
-                transforms.CenterCrop(224),
-                transforms.ToTensor()
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
 
     test_transform = transforms.Compose([
                 transforms.Resize(224),
                 transforms.CenterCrop(224),
-                transforms.ToTensor()
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
 
     #Get dataset and input into Dataloader
@@ -143,7 +151,6 @@ def run():
         batch_size=args.test_batch_size, shuffle=True)
 
     #Define Loss function
-    #train_loss_function = F.binary_cross_entropy
     train_loss_function = nn.modules.BCEWithLogitsLoss()
     test_loss_function = F.binary_cross_entropy_with_logits
     
@@ -151,9 +158,7 @@ def run():
     model, params = load_model()
     model = model.to(device)
 
-    #print('\nRunning model {}, mode: {}\n'.format(model.__class__.__name__, args.mode))
     #Define Optimizer
-    #optimizer = torch.optim.SGD(params, lr=args.lr, momentum=args.momentum)
     optimizer= torch.optim.Adam(params, lr=args.lr, )
     
     best_loss = -1
@@ -181,12 +186,12 @@ def run():
     }
 
     print('Saving model...')
-    torch.save(best_param, 'resnet18_' + args.mode + '.pt')
-    print('Model saved as : {}\n'.format('resnet18_' + args.mode + '.pt'))
+    torch.save(best_param, 'pascalvoc_' + args.mode + '.pt')
+    print('Model saved as : {}\n'.format('pascalvoc_' + args.mode + '.pt'))
 
     print('Saving results...')
-    torch.save(results, 'resnet18_' + args.mode + '_results' + '.pt')
-    print('Results saved as : {}'.format('resnet18_' + args.mode + '_results' + '.pt'))
+    torch.save(results, 'pascalvoc_' + args.mode + '_results' + '.pt')
+    print('Results saved as : {}'.format('pascalvoc_' + args.mode + '_results' + '.pt'))
 
 if __name__ == '__main__':
     run()
