@@ -22,6 +22,7 @@ def show_dataset(dataset, n=6):
             if truth == 1:
                 labels.append(dataset.index_to_class[idx])
         plt.title(', '.join(labels))
+        plt.axis('off')
     plt.show()
 
 def test():

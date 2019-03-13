@@ -5,6 +5,7 @@ import pandas as pd
 import torch.utils.data as data_utils
 from PIL import Image
 from vocparseclslabels import PascalVOC
+import utils
 
 
 class VOC2012ClassificationDataset(data_utils.Dataset):
@@ -24,14 +25,9 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
         self.train_or_val = train_or_val
 
         self.classes = self.pv.list_image_sets()
-        self.class_to_index = {}
-        self.index_to_class = {}
         # For one hot indexing
-        for i, cat_name in enumerate(self.classes):
-            self.class_to_index[cat_name] = i
-            self.index_to_class[i] = cat_name
-        
-        print("Class to index mapping:\n", self.class_to_index)
+        self.class_to_index = utils.class_to_index()
+        self.index_to_class = utils.index_to_class()
 
         # k, v: image_name, one-hot category of len classes
         self.images = {}

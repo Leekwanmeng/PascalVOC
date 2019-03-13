@@ -9,27 +9,28 @@ import torchvision.models as models
 import torch.optim
 from math import ceil
 import torchnet.meter
-
-
+import utils
 
 from dataset import VOC2012ClassificationDataset as VOCDataset
 
-def list_image_sets():
-        """
-        Summary: 
-            List all the image sets from Pascal VOC. Don't bother computing
-            this on the fly, just remember it. It's faster.
-        """
-        return [
-            'aeroplane', 'bicycle', 'bird', 'boat',
-            'bottle', 'bus', 'car', 'cat', 'chair',
-            'cow', 'diningtable', 'dog', 'horse',
-            'motorbike', 'person', 'pottedplant',
-            'sheep', 'sofa', 'train',
-            'tvmonitor']
+
+def initialise_transforms():
+    train_transform = transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                ])
+
+    test_transform = transforms.Compose([
+                transforms.Resize(224),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                ])
+    return train_transform, test_transform
 
 def load_model():
-
     model = models.resnet18(pretrained=True)
     for param in model.parameters():
         param.requires_grad = False
@@ -87,12 +88,12 @@ def test(args, model, device, test_loader, lossfunction):
         len(test_loader.dataset) ,test_loss, sum(apvalue)/len(apvalue) * 100 ))
     
     for idx, ap in enumerate(apvalue):
-        print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
+        print('{:12}:\t{:.2f} %'.format(utils.list_image_sets()[idx], ap * 100))
 
     return test_loss, apvalue
 
 def run():
-    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+    parser = argparse.ArgumentParser(description='Pascal VOC 2012 Classifier')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N',
                         help='input batch size for training (default: 32)')
 
@@ -125,21 +126,9 @@ def run():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    root = 'D:/Downloads/Deep Learning/Week 6'
+    root = './'
 
-    train_transform = transforms.Compose([
-                transforms.RandomResizedCrop(224),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                ])
-
-    test_transform = transforms.Compose([
-                transforms.Resize(224),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                ])
+    train_transform, test_transform = initialise_transforms()
 
     #Get dataset and input into Dataloader
     train_loader = torch.utils.data.DataLoader(
@@ -147,7 +136,7 @@ def run():
         batch_size=args.batch_size, shuffle=True)
 
     test_loader = torch.utils.data.DataLoader(
-        VOCDataset(root, 'val', transform = train_transform),
+        VOCDataset(root, 'val', transform = test_transform),
         batch_size=args.test_batch_size, shuffle=True)
 
     #Define Loss function
@@ -194,4 +183,5 @@ def run():
     print('Results saved as : {}'.format('pascalvoc_' + args.mode + '_results' + '.pt'))
 
 if __name__ == '__main__':
+    # python train_model.py --epochs N
     run()
