@@ -10,27 +10,28 @@ import torch.optim
 from math import ceil
 import PIL
 import torchnet.meter
-
-
+import utils
 
 from dataset import VOC2012ClassificationDataset as VOCDataset
 
-def list_image_sets():
-        """
-        Summary: 
-            List all the image sets from Pascal VOC. Don't bother computing
-            this on the fly, just remember it. It's faster.
-        """
-        return [
-            'aeroplane', 'bicycle', 'bird', 'boat',
-            'bottle', 'bus', 'car', 'cat', 'chair',
-            'cow', 'diningtable', 'dog', 'horse',
-            'motorbike', 'person', 'pottedplant',
-            'sheep', 'sofa', 'train',
-            'tvmonitor']
+
+def initialise_transforms():
+    train_transform = transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                ])
+
+    test_transform = transforms.Compose([
+                transforms.Resize(256),
+                transforms.FiveCrop(224),
+                transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])), 
+                transforms.Lambda(lambda crops: torch.stack([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(crop) for crop in crops])), 
+                ])
+    return train_transform, test_transform
 
 def load_model():
-
     model = models.resnet18(pretrained=True)
     in_ftrs = model.fc.in_features
     #Reshape last layer
@@ -90,7 +91,7 @@ def test(args, model, device, test_loader, lossfunction):
         len(test_loader.dataset) ,test_loss, sum(apvalue)/len(apvalue) * 100 ))
     
     for idx, ap in enumerate(apvalue):
-        print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
+        print('{:12}:\t{:.2f} %'.format(utils.list_image_sets()[idx], ap * 100))
 
     return test_loss, apvalue
 
@@ -123,7 +124,7 @@ def test(args, model, device, test_loader, lossfunction):
 #     return test_loss, apvalue
 
 def run():
-    parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
+    parser = argparse.ArgumentParser(description='Pascal VOC 2012 Classifier')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N',
                         help='input batch size for training (default: 32)')
 
@@ -156,40 +157,9 @@ def run():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    root = 'D:/Downloads/Deep Learning/Week 6'
+    root = './'
 
-    # train_transform = transforms.Compose([
-    #             transforms.RandomResizedCrop(224),
-    #            # transforms.ColorJitter(hue=0.5, saturation=0.5),
-    #             transforms.RandomHorizontalFlip(),
-    #             transforms.RandomRotation(20, resample=PIL.Image.BILINEAR),
-    #             transforms.ToTensor(),
-    #             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    #             ])
-
-    train_transform = transforms.Compose([
-                # transforms.Resize(224),
-                # transforms.CenterCrop(224),
-                transforms.RandomResizedCrop(224),
-                #transforms.ColorJitter(hue=0.5, saturation=0.5),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(20, resample=PIL.Image.BILINEAR),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-                ])
-
-    test_transform = transforms.Compose([
-                transforms.Resize(256),
-                transforms.FiveCrop(224),
-                transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])), 
-                transforms.Lambda(lambda crops: torch.stack([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(crop) for crop in crops])), 
-                ])
-    # test_transform = transforms.Compose([
-    #             transforms.Resize(224),
-    #             transforms.CenterCrop(224),
-    #             transforms.ToTensor(),
-    #             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    #             ])
+    train_transform, test_transform = initialise_transforms()
 
     #Get dataset and input into Dataloader
     train_loader = torch.utils.data.DataLoader(
@@ -244,4 +214,5 @@ def run():
     print('Results saved as : {}'.format('pascalvoc_' + args.mode + '_results' + '.pt'))
 
 if __name__ == '__main__':
+    # python train_model.py --epochs N
     run()
