@@ -8,6 +8,7 @@ from torchvision import datasets, transforms
 import torchvision.models as models
 import torch.optim
 from math import ceil
+import PIL
 import torchnet.meter
 
 
@@ -31,13 +32,11 @@ def list_image_sets():
 def load_model():
 
     model = models.resnet18(pretrained=True)
-    for param in model.parameters():
-        param.requires_grad = False
     in_ftrs = model.fc.in_features
     #Reshape last layer
     model.fc = nn.Linear(in_ftrs, 20)
     #Train only last layer
-    parameters = model.fc.parameters()
+    parameters = model.parameters()
     
     return model, parameters
 
@@ -63,7 +62,6 @@ def train(args, model, device, train_loader, optimizer, epoch, lossfunction):
     print('\nAverage train loss: {:.6f}'.format(total_loss/ceil(len(train_loader.dataset)/train_loader.batch_size)))
     return total_loss/ceil(len(train_loader.dataset)/train_loader.batch_size)
 
-
 def test(args, model, device, test_loader, lossfunction):
     #Set model to testing mode
     model.eval()
@@ -73,11 +71,16 @@ def test(args, model, device, test_loader, lossfunction):
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
-
-            output = model(data)
+            #Batchsize, number of crops, channels, height, width
+            bs, ncrops, c, h, w = data.size()
+            
+            output = model(data.view(-1, c, h, w))
+            #Calculate mean loss of 5 crops
+            output_avg = output.view(bs, ncrops, -1).mean(1)
             target = target.float()
-            test_loss += lossfunction(output, target, reduction='sum').item() # sum up batch loss
-            apmeter.add(output, target)
+
+            test_loss += lossfunction(output_avg, target, reduction='sum').item() # sum up batch loss
+            apmeter.add(output_avg, target)
 
     test_loss /= len(test_loader.dataset)
 
@@ -90,6 +93,34 @@ def test(args, model, device, test_loader, lossfunction):
         print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
 
     return test_loss, apvalue
+
+
+# def test(args, model, device, test_loader, lossfunction):
+#     #Set model to testing mode
+#     model.eval()
+#     test_loss = 0
+#     apmeter = torchnet.meter.APMeter()
+
+#     with torch.no_grad():
+#         for data, target in test_loader:
+#             data, target = data.to(device), target.to(device)
+
+#             output = model(data)
+#             target = target.float()
+#             test_loss += lossfunction(output, target, reduction='sum').item() # sum up batch loss
+#             apmeter.add(output, target)
+
+#     test_loss /= len(test_loader.dataset)
+
+#     apvalue = apmeter.value().tolist()
+
+#     print('\nValidation set of {}: Average loss: {:.4f}, mean AP measurement: {:.2f} %\n'.format(
+#         len(test_loader.dataset) ,test_loss, sum(apvalue)/len(apvalue) * 100 ))
+    
+#     for idx, ap in enumerate(apvalue):
+#         print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
+
+#     return test_loss, apvalue
 
 def run():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -127,19 +158,38 @@ def run():
 
     root = 'D:/Downloads/Deep Learning/Week 6'
 
+    # train_transform = transforms.Compose([
+    #             transforms.RandomResizedCrop(224),
+    #            # transforms.ColorJitter(hue=0.5, saturation=0.5),
+    #             transforms.RandomHorizontalFlip(),
+    #             transforms.RandomRotation(20, resample=PIL.Image.BILINEAR),
+    #             transforms.ToTensor(),
+    #             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    #             ])
+
     train_transform = transforms.Compose([
+                # transforms.Resize(224),
+                # transforms.CenterCrop(224),
                 transforms.RandomResizedCrop(224),
+                #transforms.ColorJitter(hue=0.5, saturation=0.5),
                 transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(20, resample=PIL.Image.BILINEAR),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
 
     test_transform = transforms.Compose([
-                transforms.Resize(224),
-                transforms.CenterCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+                transforms.Resize(256),
+                transforms.FiveCrop(224),
+                transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])), 
+                transforms.Lambda(lambda crops: torch.stack([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(crop) for crop in crops])), 
                 ])
+    # test_transform = transforms.Compose([
+    #             transforms.Resize(224),
+    #             transforms.CenterCrop(224),
+    #             transforms.ToTensor(),
+    #             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    #             ])
 
     #Get dataset and input into Dataloader
     train_loader = torch.utils.data.DataLoader(
@@ -147,7 +197,7 @@ def run():
         batch_size=args.batch_size, shuffle=True)
 
     test_loader = torch.utils.data.DataLoader(
-        VOCDataset(root, 'val', transform = train_transform),
+        VOCDataset(root, 'val', transform = test_transform),
         batch_size=args.test_batch_size, shuffle=True)
 
     #Define Loss function
