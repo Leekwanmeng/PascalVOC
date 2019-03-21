@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import torch.utils.data as data_utils
 from PIL import Image
-from vocparseclslabels import PascalVOC
-import utils
+from models.vocparseclslabels import PascalVOC
+import models.utils as utils
 
 
 class VOC2012ClassificationDataset(data_utils.Dataset):
@@ -72,3 +72,15 @@ class VOC2012ClassificationDataset(data_utils.Dataset):
             target = self.target_transform(target)
 
         return image, target
+
+# ds = VOC2012ClassificationDataset('D:/Downloads/Deep Learning/Week 6', 'val')
+# img_list = []
+# targets = []
+# for img, _ in ds:
+#     img_list.append(img)
+#     targets.append(_)
+
+# import torch
+
+# torch.save(img_list,'val_img_paths.pt')
+# torch.save(targets, 'val_targets.pt')

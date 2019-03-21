@@ -36,7 +36,7 @@ def load_model():
     in_ftrs = model.fc.in_features
     #Reshape last layer
     model.fc = nn.Linear(in_ftrs, 20)
-    #Train only last layer
+    #Train all layers
     parameters = model.parameters()
     
     return model, parameters

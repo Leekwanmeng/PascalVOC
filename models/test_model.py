@@ -44,6 +44,7 @@ def test(args, model, device, test_loader, lossfunction):
     model.eval()
     test_loss = 0
     apmeter = torchnet.meter.APMeter()
+    results = []
 
     with torch.no_grad():
         for data, target in test_loader:
@@ -54,6 +55,8 @@ def test(args, model, device, test_loader, lossfunction):
             output = model(data.view(-1, c, h, w))
             #Calculate mean loss of 5 crops
             output_avg = output.view(bs, ncrops, -1).mean(1)
+            print(output_avg.shape)
+            results.append(output_avg)
             target = target.float()
             
             test_loss += lossfunction(output_avg, target, reduction='sum').item() # sum up batch loss
@@ -69,7 +72,7 @@ def test(args, model, device, test_loader, lossfunction):
     for idx, ap in enumerate(apvalue):
         print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
 
-    return test_loss, apvalue
+    return test_loss, apvalue, results
 
 def run():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -124,15 +127,17 @@ def run():
 
     test_loader = torch.utils.data.DataLoader(
         VOCDataset(root, 'val', transform = test_transform),
-        batch_size=args.test_batch_size, shuffle=True)
+        batch_size=args.test_batch_size, shuffle=False)
 
     test_loss_function = F.binary_cross_entropy_with_logits
     
     #Define Model
-    model = load_model('./pascalvoc_A.pt')
+    model = load_model('./results/pascalvoc_A.pt')
     model = model.to(device)
 
-    val_loss, val_acc = test(args, model, device, test_loader, test_loss_function)
+    val_loss, val_acc, output = test(args, model, device, test_loader, test_loss_function)
+    print(len(output))
+    torch.save(output, 'val_set_results.pt')
 
 if __name__ == "__main__":
     run()
