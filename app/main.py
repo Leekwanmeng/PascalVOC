@@ -16,7 +16,7 @@ from functools import partial
 class ResultsPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        self.rv = ResultViewer('D:/Downloads/Deep Learning/Week 6', 'val_set_results3.pt')
+        self.rv = ResultViewer('D:/Downloads/Deep Learning/Week 6', './results/val_set_results.pt')
         
         self.cls = None
         self.img_res = []
@@ -60,7 +60,6 @@ class ResultsPage(tk.Frame):
         self.tree.bind("<Double-1>", self.onDoubleClick)
 
     def reset(self):
-        print('Deleting children')
         self.tree.delete(*self.tree.get_children(''))
         self.img.config(image='')
         self.img.image = None

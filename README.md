@@ -9,7 +9,7 @@
 ```./setup.sh```
 
 3. Install package requirements
-```pip install requirements.txt```
+```pip install -r requirements.txt```
 
 ## Training the model
 

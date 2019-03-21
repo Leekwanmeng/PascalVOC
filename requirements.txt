@@ -1,0 +1,8 @@
+torchnet==0.0.4
+torchvision==0.2.1
+pandas==0.24.2
+numpy==1.16.1
+torch==1.0.0
+Pillow==5.4.1
+matplotlib==3.0.3
+scikit_learn==0.20.3
