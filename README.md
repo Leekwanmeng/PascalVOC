@@ -8,7 +8,9 @@
 ```chmod +x setup.sh```
 ```./setup.sh```
 
-3. Install package requirements
+3. Install pytorch from https://pytorch.org/
+
+4. Install package requirements
 ```pip install -r requirements.txt```
 
 ## Training the model
