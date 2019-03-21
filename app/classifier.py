@@ -78,6 +78,3 @@ class Classifier(object):
                 ])
         return test_transform(image)
 
-# from app.classifier import Classifier as Clf
-# clf = Clf('./results/pascalvoc_A.pt')
-# clf.predict('2007_002120.jpg')

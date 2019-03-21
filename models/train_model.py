@@ -14,7 +14,6 @@ import utils
 
 from dataset import VOC2012ClassificationDataset as VOCDataset
 
-
 def initialise_transforms():
     train_transform = transforms.Compose([
                 transforms.RandomResizedCrop(224),
@@ -94,34 +93,6 @@ def test(args, model, device, test_loader, lossfunction):
         print('{:12}:\t{:.2f} %'.format(utils.list_image_sets()[idx], ap * 100))
 
     return test_loss, apvalue
-
-
-# def test(args, model, device, test_loader, lossfunction):
-#     #Set model to testing mode
-#     model.eval()
-#     test_loss = 0
-#     apmeter = torchnet.meter.APMeter()
-
-#     with torch.no_grad():
-#         for data, target in test_loader:
-#             data, target = data.to(device), target.to(device)
-
-#             output = model(data)
-#             target = target.float()
-#             test_loss += lossfunction(output, target, reduction='sum').item() # sum up batch loss
-#             apmeter.add(output, target)
-
-#     test_loss /= len(test_loader.dataset)
-
-#     apvalue = apmeter.value().tolist()
-
-#     print('\nValidation set of {}: Average loss: {:.4f}, mean AP measurement: {:.2f} %\n'.format(
-#         len(test_loader.dataset) ,test_loss, sum(apvalue)/len(apvalue) * 100 ))
-    
-#     for idx, ap in enumerate(apvalue):
-#         print('{:12}:\t{:.2f} %'.format(list_image_sets()[idx], ap * 100))
-
-#     return test_loss, apvalue
 
 def run():
     parser = argparse.ArgumentParser(description='Pascal VOC 2012 Classifier')
@@ -206,11 +177,12 @@ def run():
     }
 
     print('Saving model...')
-    torch.save(best_param, 'pascalvoc_' + args.mode + '.pt')
+    save_dir = './results'
+    torch.save(best_param, save_dir + 'pascalvoc_' + args.mode + '.pt')
     print('Model saved as : {}\n'.format('pascalvoc_' + args.mode + '.pt'))
 
     print('Saving results...')
-    torch.save(results, 'pascalvoc_' + args.mode + '_results' + '.pt')
+    torch.save(results, save_dir + 'pascalvoc_' + args.mode + '_results' + '.pt')
     print('Results saved as : {}'.format('pascalvoc_' + args.mode + '_results' + '.pt'))
 
 if __name__ == '__main__':

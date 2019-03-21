@@ -11,8 +11,6 @@ from math import ceil
 import PIL
 import torchnet.meter
 
-
-
 from dataset import VOC2012ClassificationDataset as VOCDataset
 
 def list_image_sets():
@@ -31,9 +29,7 @@ def list_image_sets():
 
 
 def load_model(path):
-
     model = models.resnet18(pretrained=False, num_classes=20)
-
     model.load_state_dict(torch.load(path))
     
     return model
@@ -55,7 +51,6 @@ def test(args, model, device, test_loader, lossfunction):
             output = model(data.view(-1, c, h, w))
             #Calculate mean loss of 5 crops
             output_avg = output.view(bs, ncrops, -1).mean(1)
-            print(output_avg.shape)
             results.append(output_avg)
             target = target.float()
             
@@ -108,7 +103,8 @@ def run():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    root = 'D:/Downloads/Deep Learning/Week 6'
+    root = './'
+    model_path = './results/pascalvoc_A.pt'
 
     test_transform = transforms.Compose([
                 transforms.Resize(256),
@@ -116,15 +112,8 @@ def run():
                 transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])), 
                 transforms.Lambda(lambda crops: torch.stack([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(crop) for crop in crops])), 
                 ])
-    # test_transform = transforms.Compose([
-    #             transforms.Resize(224),
-    #             transforms.CenterCrop(224),
-    #             transforms.ToTensor(),
-    #             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    #             ])
 
     #Get dataset and input into Dataloader
-
     test_loader = torch.utils.data.DataLoader(
         VOCDataset(root, 'val', transform = test_transform),
         batch_size=args.test_batch_size, shuffle=False)
@@ -132,11 +121,11 @@ def run():
     test_loss_function = F.binary_cross_entropy_with_logits
     
     #Define Model
-    model = load_model('./results/pascalvoc_A.pt')
+    model = load_model(model_path)
     model = model.to(device)
 
     val_loss, val_acc, output = test(args, model, device, test_loader, test_loss_function)
-    print(len(output))
+
     torch.save(output, 'val_set_results.pt')
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ class ResultViewer(object):
 
     def get_class_results(self, cls):
         img_list = self.pv.imgs_from_category_as_list(cls, 'val')
-        print(len(img_list))
         cls_idx = self.class_to_index()[cls]
         img_list = pd.DataFrame(img_list)
         img_list = img_list.set_index(0)
@@ -24,7 +23,6 @@ class ResultViewer(object):
         class_res = class_res.sort_values(cls_idx+1, ascending=False)
 
         return class_res
-        # print(img_list)
         
     def get_classes(self):
         return self.pv.list_image_sets()
