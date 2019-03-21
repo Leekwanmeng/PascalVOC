@@ -11,8 +11,6 @@ from math import ceil
 import PIL
 import torchnet.meter
 
-
-
 from dataset import VOC2012ClassificationDataset as VOCDataset
 
 def list_image_sets():
@@ -55,7 +53,6 @@ def test(args, model, device, test_loader, lossfunction):
             output = model(data.view(-1, c, h, w))
             #Calculate mean loss of 5 crops
             output_avg = output.view(bs, ncrops, -1).mean(1)
-            print(output_avg.shape)
             results.append(output_avg)
             target = target.float()
             
@@ -116,12 +113,6 @@ def run():
                 transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])), 
                 transforms.Lambda(lambda crops: torch.stack([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(crop) for crop in crops])), 
                 ])
-    # test_transform = transforms.Compose([
-    #             transforms.Resize(224),
-    #             transforms.CenterCrop(224),
-    #             transforms.ToTensor(),
-    #             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    #             ])
 
     #Get dataset and input into Dataloader
 
@@ -136,7 +127,7 @@ def run():
     model = model.to(device)
 
     val_loss, val_acc, output = test(args, model, device, test_loader, test_loss_function)
-    print(len(output))
+
     torch.save(output, 'val_set_results.pt')
 
 if __name__ == "__main__":

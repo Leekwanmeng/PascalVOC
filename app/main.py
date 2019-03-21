@@ -41,12 +41,15 @@ class ResultsPage(tk.Frame):
 
         self.img = tk.Label(self.sideView)
         self.img.grid(row=0, column=0, columnspan=2 , sticky='nsew')
-        #self.img.pack(side='top', fill='both', expand=True)
-        self.expected = tk.Label(self.sideView, text='Expected:')
-        self.actual = tk.Label(self.sideView, text='Actual:')
-        self.confidence = tk.Label(self.sideView)
-        self.expected.grid(row=1, column=0, sticky='nsew')
-        self.actual.grid(row=1, column=1, sticky='nsew')
+
+        # self.expected = tk.Label(self.sideView, text='Expected:')
+        # self.actual = tk.Label(self.sideView, text='Actual:')
+        self.score = tk.Label(self.sideView, text = '')
+        self.score.config(font=('Arial',14))
+        self.score.grid(row=1, column=0, columnspan=2, sticky='nsew')
+        
+        # self.expected.grid(row=1, column=0, sticky='nsew')
+        # self.actual.grid(row=1, column=1, sticky='nsew')
         
         self.tree = ttk.Treeview(self.panel)
         self.tree.grid(row=0, column=0, sticky='nsw')
@@ -74,6 +77,8 @@ class ResultsPage(tk.Frame):
         self.tree.delete(*self.tree.get_children(''))
         self.img.config(image='')
         self.img.image = None
+        self.score.config(text='')
+        self.score.update_idletasks()
 
     def init_tree(self, cls):
         self.reset()
@@ -81,10 +86,8 @@ class ResultsPage(tk.Frame):
         self.cls = cls
 
         self.img_res = self.rv.get_class_results(cls)
-        #print(self.img_res)
-        print(cls)
+     
         img_list = self.img_res.index.values
-
         
         for i in img_list:
             self.tree.insert("",'end', text=i, value=i)
@@ -94,6 +97,9 @@ class ResultsPage(tk.Frame):
         img_name = self.tree.item(item,"text")
         img_path = self.rv.get_img_path(img_name)
 
+        score = self.img_res.loc[img_name, self.rv.class_to_index()[self.cls]+1]
+        self.score.config(text='Prediction score: {:.2f} %'.format(float(score)*100))
+        self.score.update_idletasks()
         selected_img = ImageTk.PhotoImage(pad_and_resize(img_path, 400))
         
         self.img.config(image=selected_img)
