@@ -29,9 +29,7 @@ def list_image_sets():
 
 
 def load_model(path):
-
     model = models.resnet18(pretrained=False, num_classes=20)
-
     model.load_state_dict(torch.load(path))
     
     return model
@@ -105,7 +103,8 @@ def run():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    root = 'D:/Downloads/Deep Learning/Week 6'
+    root = './'
+    model_path = './results/pascalvoc_A.pt'
 
     test_transform = transforms.Compose([
                 transforms.Resize(256),
@@ -115,7 +114,6 @@ def run():
                 ])
 
     #Get dataset and input into Dataloader
-
     test_loader = torch.utils.data.DataLoader(
         VOCDataset(root, 'val', transform = test_transform),
         batch_size=args.test_batch_size, shuffle=False)
@@ -123,7 +121,7 @@ def run():
     test_loss_function = F.binary_cross_entropy_with_logits
     
     #Define Model
-    model = load_model('./results/pascalvoc_A.pt')
+    model = load_model(model_path)
     model = model.to(device)
 
     val_loss, val_acc, output = test(args, model, device, test_loader, test_loss_function)

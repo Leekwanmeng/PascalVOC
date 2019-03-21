@@ -12,11 +12,6 @@ from app.classifier import Classifier as Clf
 from app.resultviewer import ResultViewer
 
 from functools import partial
-# class Page(tk.Frame):
-#     def __init__(self, *args, **kwargs):
-#         tk.Frame.__init__(self, *args, **kwargs)
-#     def show(self):
-#         self.lift()
 
 class ResultsPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -42,38 +37,30 @@ class ResultsPage(tk.Frame):
         self.img = tk.Label(self.sideView)
         self.img.grid(row=0, column=0, columnspan=2 , sticky='nsew')
 
-        # self.expected = tk.Label(self.sideView, text='Expected:')
-        # self.actual = tk.Label(self.sideView, text='Actual:')
         self.score = tk.Label(self.sideView, text = '')
         self.score.config(font=('Arial',14))
         self.score.grid(row=1, column=0, columnspan=2, sticky='nsew')
         
-        # self.expected.grid(row=1, column=0, sticky='nsew')
-        # self.actual.grid(row=1, column=1, sticky='nsew')
         
         self.tree = ttk.Treeview(self.panel)
         self.tree.grid(row=0, column=0, sticky='nsw')
         
         scroll = ttk.Scrollbar(self.panel)
-        scroll.grid(row=0, column=1, sticky="nsw") # set this to column=2 so it sits in the correct spot.
+        scroll.grid(row=0, column=1, sticky="nsw") 
 
         scroll.configure(command=self.tree.yview)
         self.tree.configure(yscrollcommand=scroll.set)
 
-        #self.sideView = tk.Label(self.panel, text='WTF')
 
         self.panel.columnconfigure(2, weight=1)
-        # self.panel.columnconfigure(1,weight=1)
+  
 
         self.panel.rowconfigure(0, weight=1)
 
-
-        #self.tree.pack(side='top', fill='both', expand=True)
         self.tree.bind("<Double-1>", self.onDoubleClick)
 
     def reset(self):
         print('Deleting children')
-        #print(len(self.tree.get_children('')))
         self.tree.delete(*self.tree.get_children(''))
         self.img.config(image='')
         self.img.image = None
@@ -82,7 +69,6 @@ class ResultsPage(tk.Frame):
 
     def init_tree(self, cls):
         self.reset()
-        #print(self.tree.get_children(''))
         self.cls = cls
 
         self.img_res = self.rv.get_class_results(cls)
@@ -105,8 +91,6 @@ class ResultsPage(tk.Frame):
         self.img.config(image=selected_img)
         self.img.image = selected_img
         self.img.update_idletasks()
-            
-        #print(img_path)
 
     def show(self, cls):
         self.cls = cls
@@ -139,7 +123,6 @@ class Main_1(tk.Frame):
         openFile = tk.Button(self.rightFrame, text="Open a Image", command= self.uploadFile)
         openFile.config(bg='#8e8d8d', font=('Arial',14))
         openFile.pack(side='bottom', fill='both', expand=True)
-        #openFile.grid(row=0, column=1, sticky='ew')
 
     def predict(self, img_path):
         self.results.config(text='Prediction:\n {}'.format('Calculating!!!'))
@@ -166,7 +149,6 @@ class Main_1(tk.Frame):
             return
         
         else:
-            #to_predict = ImageTk.PhotoImage(resize_and_crop(f, (224,224), crop_type='middle'))
             to_predict = ImageTk.PhotoImage(pad_and_resize(f, 400))
             
             self.imgPanel.config(image=to_predict)
@@ -199,23 +181,10 @@ class Main_2(tk.Frame):
 class MainView(tk.Frame):
     def __init__(self, parent, controller, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
-        # p1 = Main_1(self)
-        # p2 = Main_2(self)
-        # rp = ResultsPage(self)
 
         buttonframe = tk.Frame(self)
-        # # container = tk.Frame(self)
         buttonframe.pack(side="top", fill="both", expand=True)
-        # container.pack(side="top", fill="both", expand=True)
-        # container.grid_rowconfigure(0, weight=1)
-        # container.grid_columnconfigure(0, weight=1)
-
-        # p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        # p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        # rp.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-
-        # b1 = tk.Button(buttonframe, text="Predict an image", command=p1.lift)
-        # b2 = tk.Button(buttonframe, text="View Validation results", command=p2.lift)
+ 
         b1 = tk.Button(buttonframe, text="Predict an image", command=lambda: controller.show_frame(Main_1))
         b2 = tk.Button(buttonframe, text="View Validation Results", command=lambda: controller.show_frame(Main_2))
 
@@ -243,7 +212,6 @@ class Application(tk.Tk):
             frame = F(container, self)
 
             self.frames[F] = frame
-            #frame.pack()
             frame.grid(row=0, column=0, sticky='nsew')
 
         self.show_frame(MainView)
