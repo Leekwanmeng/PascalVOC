@@ -11,17 +11,17 @@
 3. Install package requirements
 ```pip install requirements.txt```
 
-##Training the model
+## Training the model
 
 1. To run the train model script, `python3 ./models/train_model.py`
 
-##Testing the model
+## Testing the model
 
 1. Set the `model_path` variable in `test_model.py` to the path of the saved model
 
 2. To run the test model script, `python3 ./models/test_model.py`
 
-##Running the GUI
+## Running the GUI
 
 1. To start the GUI interface, `python3 ./app/main.py`
 
