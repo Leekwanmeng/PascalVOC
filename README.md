@@ -28,3 +28,6 @@
 1. To start the GUI interface, `python3 ./app/main.py`
 
 2. To predict a sample image, you can use the `sample_image.jpg` provided.
+
+## Implementation Details
+Refer to report.pdf for an explanation of the code and implementation.

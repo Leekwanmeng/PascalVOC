@@ -108,9 +108,6 @@ def run():
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate (default: 0.001)')
     
-    parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
-                        help='SGD momentum (default: 0.5)')
-    
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
     
