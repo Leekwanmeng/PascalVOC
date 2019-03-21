@@ -9,14 +9,15 @@ label = 'mode C'
 save = 'D'
 epoch = 15
 
-plt.plot(range(epoch), results_A['train_loss'][:epoch], )
+plt.plot(range(epoch), results_A['train_loss'][:epoch], label='training loss')
+
+plt.plot(range(epoch), results_A['val_loss'][:epoch], label='val loss')
 plt.xlabel("No. of Epochs")
 plt.ylabel("Training loss")
-
+plt.legend()
 plt.savefig(save +'_1.png')
 plt.show()
 
-plt.plot(range(epoch), results_A['val_loss'][:epoch], )
 plt.xlabel("No. of Epochs")
 plt.ylabel("Validation loss")
 
